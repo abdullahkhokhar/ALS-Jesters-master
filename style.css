@@ -1,0 +1,33 @@
+.topSpace{
+ height:100px;   
+}
+.mainLogo{
+ height:420px;
+    width: 420px;
+    background-image: url("gLogo2.png");
+    
+}
+.smallSpace{
+    margin-top:25px;
+}
+.subtitle{
+    text-color: #31353D;
+}
+.subtitle:hover{
+ text-decoration: underline;
+}
+#background{
+ background-image: url(finalbackground.png);   
+    -webkit-transition: background-image 10s ease-in;
+    transition: background-image 10s ease-in; 
+height:auto;
+    width:auto;
+}
+body{
+    height:100%;
+    width:100%;
+}
+#output2{
+    height:210px;
+    width:210px;
+}

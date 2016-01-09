@@ -1,0 +1,221 @@
+<html>
+	<head>
+		<title> ASL Leap Motion Analysis </title>
+	</head>
+
+	<body>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script> <!--Links required scripts -->
+        <link href="bootstrap-3.3.5-dist/css/bootstrap.css" rel="stylesheet">
+        <link href="style.css" rel="stylesheet">
+        
+        <div id="background"> <!-- div for background image-->
+        
+            <div class="topSpace"></div>  <!--spacer -->
+            
+            <div class="container">
+                <div class="col-xs-5"></div>  <!--Output where correct signal picture is displayed -->
+                <div class="col-xs-2">
+                    <img id="output2" src="placeholder.png"></img>
+                </div>
+               <div class="col-xs-5"></div>
+            </div>
+        
+        <div class="topSpace">
+            <h3 class="text-center">
+                Your hand must be perpendicular and face down to the Leap Controller <br>
+                Note: Only sign L and I as this is the beta version.
+                <br><a href="sign.png">Click here for signs</a> 
+
+              
+            </h3>
+        </div>
+        <div class="topSpace"></div>
+        
+        <div class="container">
+            <div class="col-xs-6"></div>
+                <div class="col-xs-2">
+                    <button onclick="register()" style="background-color: rgb(50,53,61);
+                    border: none;
+                                        "class="btn-primary btn-lg"> 
+                        Recognize Signal 
+                    </button>  <!--Button that activates function -->
+                </div>
+               <div class="col-xs-4"></div>
+        </div>
+
+        <div class="topSpace"></div>
+        <div class="topSpace"></div>
+        <div class="topSpace"></div>
+        <div class="col-xs-4"></div>
+            <div class="col-xs-4">
+                <a href="start.html">
+                    <p>
+                        return
+                    </p>
+                </a>
+            </div>
+        <div class="col-xs-4"></div>
+        </div>
+
+<script src="https://js.leapmotion.com/leap-0.6.4.js"></script>
+	<script type="text/javascript">
+
+var fingerPosition = {};
+
+var LetterL = {"1":[60.239,8.762, 3.0072],
+            "2":[22.4139,3.26900,75.098],
+            "3":[-2.207289,45.280,17.12660],
+            "4":[-15.307,39.31299,13.8169],
+            "5":[-25.657369,27.024,13.561]};
+
+var LetterI = {"1":[23.3365,31.35799,22.090],
+            "2":[18.92495, 40.912998, 39.8880],
+            "3":[9.3817, 43.923, 42.7084],
+            "4":[-8.8837, 40.20299, 36.7505],
+            "5":[-44.560, -2.3090, 56.681]};
+
+
+function confidenceValue(a,b){ //compares two vectors and returns a value of how similar they are; the smaller the more similar
+
+ var a1 = (a[0]-b[0])/a[0];
+ var a3 = (a[2]-b[2])/a[2];
+   return ((a1+a3)/3);
+}
+
+function register() {
+  var io = 0;
+    for (var j = 0, len2 = hand.fingers.length; j < len2; j++) {  //loops through each one of the fingers in one's hand
+        finger = hand.fingers[j]
+        io ++;
+
+        var delta = Leap.vec3.create();
+        Leap.vec3.subtract(delta, hand.palmPosition, finger.dipPosition);   //calculates distance between tip of finger and base of palm
+
+        var iop = io.toString();
+        
+        fingerPosition[iop] = delta;
+        var totalCV1 =+ confidenceValue(LetterI[iop],delta);  //calculates the confidence value of each letter
+        var totalCV2 =+ confidenceValue(LetterL[iop],delta);
+    }
+    var final1 = (totalCV1/5);
+    var final2 = (totalCV2/5); //get average of CV
+    
+    var x = Math.abs(final1);
+    var y = Math.abs(final2);
+    
+    if(hand.confidence <0.75){
+      alert("Please sign L or I (this is the beta version)");
+    } 
+   
+        
+
+  else if (x < y){
+          document.getElementById("output2").src = "Isign.png"   //display sign on page
+        }
+       else if (x > y){
+           document.getElementById("output2").src = "Lsign.png"
+        } 
+       
+        
+    };
+
+
+function referenceCreation(){  //function that prints vectors of each finger into console. To help create reference points
+    var io = 0;
+        for (var j = 0, len2 = hand.fingers.length; j < len2; j++) {  
+            finger = hand.fingers[j]
+            io ++;
+
+            var delta = Leap.vec3.create();
+            Leap.vec3.subtract(delta, hand.palmPosition, finger.dipPosition);
+
+        console.log(delta[0] + "," + delta[1] + "," + delta[2]);
+      }
+   };
+ 
+        
+        
+        
+        
+    /* Code from Leap Javascript SDK */
+        
+        function concatData(id, data) {   //formats data on page and adds line break
+      return id + ": " + data + "<br>";
+    }
+    
+
+    function getFingerName(fingerType) {  //gets name for each finger
+      switch(fingerType) {
+        case 0:
+          return 'Thumb';
+        break;
+    
+        case 1:
+          return 'Index';
+        break;
+    
+        case 2:
+          return 'Middle';
+        break;
+    
+        case 3:
+          return 'Ring';
+        break;
+    
+        case 4:
+          return 'Pinky';
+        break;
+      }
+    }
+    
+    function concatJointPosition(id, position) {
+      return id + ": " + position[0] + ", " + position[1] + ", " + position[2] + "<br>";  //gives (x,y,z) of each finger
+    }
+    
+    
+    var output = document.getElementById('output');
+    var frameString = "", handString = "", fingerString = "";
+    var hand, finger;
+    
+    // Leap.loop uses browser's requestAnimationFrame
+    var options = { enableGestures: true };
+    
+    // Main Leap Loop
+    Leap.loop(options, function(frame) {
+      frameString = concatData("frame_id", frame.id);   
+      frameString += concatData("num_hands", frame.hands.length);
+      frameString += concatData("num_fingers", frame.fingers.length);    //added palm position
+      frameString += "<br>";
+    
+      // Showcase some new V2 features
+      for (var i = 0, len = frame.hands.length; i < len; i++) {
+        hand = frame.hands[i];
+        handString = concatData("hand_type", hand.type);
+        handString += concatData("confidence", hand.confidence);
+        handString += concatData("pinch_strength", hand.pinchStrength);
+        handString += concatData("grab_strength", hand.grabStrength);
+        handString += concatData("hand_position", hand.palmPosition);
+        handString += '<br>';
+
+    
+        // Helpers for thumb, pinky, etc.
+        fingerString = concatJointPosition("finger_thumb_dip", hand.thumb.dipPosition);
+        for (var j = 0, len2 = hand.fingers.length; j < len2; j++) {
+          finger = hand.fingers[j];
+          fingerString += concatData("finger_type", finger.type) + " (" + getFingerName(finger.type) + ") <br>";
+          fingerString += concatJointPosition("finger_dip", finger.dipPosition);
+          fingerString += concatJointPosition("finger_pip", finger.pipPosition);
+          fingerString += concatJointPosition("finger_mcp", finger.mcpPosition);
+          var delta = Leap.vec3.create();
+        Leap.vec3.subtract(delta, hand.palmPosition, finger.dipPosition);
+         fingerString += concatJointPosition("finger_space", delta);
+          fingerString += "<br>";
+        }
+    
+        frameString += handString;
+        frameString += fingerString;
+      }    
+    });   
+    	</script>
+	</body>
+</html>
